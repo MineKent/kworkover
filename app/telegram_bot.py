@@ -26,14 +26,14 @@ class TelegramNotifier:
     async def send_match(self, matched_offer: MatchedOffer) -> None:
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
-                [InlineKeyboardButton(text="Generate reply", callback_data=f"generate:{matched_offer.offer.offer_id}")],
-                [InlineKeyboardButton(text="Open offer", url=matched_offer.offer.url)],
+                [InlineKeyboardButton(text="Сгенерировать ответ", callback_data=f"generate:{matched_offer.offer.offer_id}")],
+                [InlineKeyboardButton(text="Открыть заявку", url=matched_offer.offer.url)],
             ]
         )
         message = (
             f"<b>{escape(matched_offer.offer.title)}</b>\n"
-            f"Match: <b>{matched_offer.match_percent}%</b>\n"
-            f"Budget: {escape(matched_offer.offer.budget or '-')}\n"
+            f"Совпадение: <b>{matched_offer.match_percent}%</b>\n"
+            f"Бюджет: {escape(matched_offer.offer.budget or '-')}\n"
             f"{escape(matched_offer.reasoning)}\n\n"
             f"{escape(matched_offer.offer.description[:800])}"
         )
@@ -42,12 +42,12 @@ class TelegramNotifier:
     async def send_generated_reply(self, matched_offer: MatchedOffer) -> None:
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
-                [InlineKeyboardButton(text="Send to Kwork", callback_data=f"send:{matched_offer.offer.offer_id}")],
-                [InlineKeyboardButton(text="Open offer", url=matched_offer.offer.url)],
+                [InlineKeyboardButton(text="Отправить на Kwork", callback_data=f"send:{matched_offer.offer.offer_id}")],
+                [InlineKeyboardButton(text="Открыть заявку", url=matched_offer.offer.url)],
             ]
         )
         text = (
-            f"Draft for: <b>{escape(matched_offer.offer.title)}</b>\n\n"
+            f"Черновик для: <b>{escape(matched_offer.offer.title)}</b>\n\n"
             f"<pre>{escape(matched_offer.generated_reply or '')}</pre>"
         )
         await self.bot.send_message(self.chat_id, text, reply_markup=keyboard)
