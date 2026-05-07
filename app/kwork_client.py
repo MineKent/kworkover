@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -70,7 +71,13 @@ class KworkClient:
             description = await self._safe_text(card, self.settings.description_selector)
             budget = await self._safe_text(card, self.settings.budget_selector)
             href = await self._safe_href(card, self.settings.link_selector)
-            offer_id = (await card.get_attribute(self.settings.offer_id_attribute)) or href or f"card-{index}"
+            
+            if self.settings.offer_id_attribute:
+                offer_id = await card.get_attribute(self.settings.offer_id_attribute)
+            else:
+                match = re.search(r"/projects/(\d+)", href or "")
+                offer_id = match.group(1) if match else f"card-{index}"
+            
             if not title and not description:
                 continue
 
