@@ -54,21 +54,31 @@ class OfferMonitorService:
             await asyncio.sleep(self.settings.kwork_poll_interval_seconds)
 
     async def process_new_offers(self) -> None:
-        seen_offer_ids = self.storage.get_seen_offer_ids()
+        notified_offer_ids = self.storage.get_notified_offer_ids()
         offers = await self.kwork_client.fetch_offers()
 
+        logging.info(f"Найдено {len(offers)} офферов с Kwork")
+
         for offer in offers:
-            if offer.offer_id in seen_offer_ids:
+            if offer.offer_id in notified_offer_ids:
                 continue
 
-            self.storage.mark_offer_seen(offer.offer_id)
+            logging.info(f"Проверяю оффер: {offer.offer_id} - {offer.title[:50]}...")
+
             match_percent, reasoning = self.matcher.score(offer)
+            logging.info(f"Процент совпадения для {offer.offer_id}: {match_percent}%")
+
             if match_percent < self.settings.kwork_min_match_percent:
+                logging.info(f"Оффер {offer.offer_id} пропущен - ниже порога ({match_percent}% < {self.settings.kwork_min_match_percent}%)")
                 continue
 
             matched_offer = MatchedOffer(offer=offer, match_percent=match_percent, reasoning=reasoning)
             self.storage.save_match(matched_offer)
+            logging.info(f"Отправляю оффер {offer.offer_id} в Telegram")
             await self.notifier.send_match(matched_offer)
+            self.storage.mark_offer_notified(offer.offer_id)
+
+            await asyncio.sleep(3)
 
     async def generate_reply_for_offer(self, offer_id: str) -> MatchedOffer | None:
         matched_offer = self.storage.get_match(offer_id)
@@ -82,4 +92,5 @@ class OfferMonitorService:
         if not matched_offer or not matched_offer.generated_reply:
             return False
         await self.kwork_client.send_reply(matched_offer.offer.url, matched_offer.generated_reply)
+        self.storage.mark_offer_completed(offer_id)
         return True

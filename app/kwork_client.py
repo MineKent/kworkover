@@ -16,13 +16,17 @@ class KworkClient:
         self.storage_state_path = Path(settings.kwork_storage_state_path)
 
     async def fetch_offers(self) -> list[Offer]:
+        logging.info("Начинаю загрузку офферов с Kwork...")
         async with async_playwright() as playwright:
             browser = await playwright.chromium.launch(headless=True)
             context = await self._build_context(browser)
             page = await context.new_page()
+            logging.info(f"Открываю страницу {self.settings.kwork_projects_url}...")
             await page.goto(self.settings.kwork_projects_url, wait_until="domcontentloaded")
-            await page.wait_for_timeout(3000)
+            await page.wait_for_timeout(5000)
+            logging.info("Страница загружена, извлекаю офферы...")
             offers = await self._extract_offers(page)
+            logging.info(f"Извлечено {len(offers)} офферов")
             await context.close()
             await browser.close()
             return offers

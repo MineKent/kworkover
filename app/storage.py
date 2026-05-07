@@ -11,17 +11,17 @@ class StateStorage:
         self.file_path = Path(file_path)
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
         if not self.file_path.exists():
-            self._write({"seen_offer_ids": [], "matched_offers": {}})
+            self._write({"notified_offer_ids": [], "matched_offers": {}})
 
-    def get_seen_offer_ids(self) -> set[str]:
+    def get_notified_offer_ids(self) -> set[str]:
         data = self._read()
-        return set(data.get("seen_offer_ids", []))
+        return set(data.get("notified_offer_ids", []))
 
-    def mark_offer_seen(self, offer_id: str) -> None:
+    def mark_offer_notified(self, offer_id: str) -> None:
         data = self._read()
-        seen = set(data.get("seen_offer_ids", []))
-        seen.add(offer_id)
-        data["seen_offer_ids"] = sorted(seen)
+        notified = set(data.get("notified_offer_ids", []))
+        notified.add(offer_id)
+        data["notified_offer_ids"] = sorted(notified)
         self._write(data)
 
     def save_match(self, matched_offer: MatchedOffer) -> None:
@@ -43,6 +43,13 @@ class StateStorage:
         matched.generated_reply = generated_reply
         self.save_match(matched)
         return matched
+
+    def mark_offer_completed(self, offer_id: str) -> None:
+        data = self._read()
+        notified = set(data.get("notified_offer_ids", []))
+        notified.discard(offer_id)
+        data["notified_offer_ids"] = sorted(notified)
+        self._write(data)
 
     def _read(self) -> dict:
         return json.loads(self.file_path.read_text(encoding="utf-8"))
