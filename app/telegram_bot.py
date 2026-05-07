@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from html import escape
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from aiogram import Bot, F, Router
@@ -58,6 +59,20 @@ def build_router(service: OfferMonitorService) -> Router:
     @router.message(Command("start"))
     async def start(message: Message) -> None:
         await message.answer("Бот запущен. Новые подходящие заявки будут приходить сюда.")
+
+    @router.message(Command("debug"))
+    async def debug(message: Message) -> None:
+        html_path = Path("data/kwork_page.html")
+        if not html_path.exists():
+            await message.answer("Файл data/kwork_page.html не найден. Сначала дождись следующего запуска парсинга.")
+            return
+        
+        html_content = html_path.read_text(encoding="utf-8")
+        if len(html_content) > 4000:
+            await message.answer(f"HTML файл слишком большой ({len(html_content)} символов). Вот начало:\n\n{escape(html_content[:4000])}")
+            await message.answer(f"Продолжение:\n\n{escape(html_content[4000:8000])}")
+        else:
+            await message.answer(f"<pre>{escape(html_content)}</pre>")
 
     @router.callback_query(F.data.startswith("generate:"))
     async def generate_reply(callback: CallbackQuery) -> None:
