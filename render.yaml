@@ -1,0 +1,6 @@
+services:
+  - type: worker
+    name: kwork-offer-analyzer
+    env: docker
+    plan: free
+    autoDeploy: true

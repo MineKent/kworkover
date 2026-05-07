@@ -1,0 +1,1 @@
+"""Kwork offer analyzer package."""
