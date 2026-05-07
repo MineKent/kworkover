@@ -53,7 +53,15 @@ class OfferMonitorService:
                 logging.exception("Offer polling failed")
             await asyncio.sleep(self.settings.kwork_poll_interval_seconds)
 
+    def has_active_offer(self) -> bool:
+        notified = self.storage.get_notified_offer_ids()
+        return len(notified) > 0
+
     async def process_new_offers(self) -> None:
+        if self.has_active_offer():
+            logging.info("Есть активный оффер, пропускаю проверку новых")
+            return
+
         notified_offer_ids = self.storage.get_notified_offer_ids()
         offers = await self.kwork_client.fetch_offers()
 
@@ -78,7 +86,8 @@ class OfferMonitorService:
             await self.notifier.send_match(matched_offer)
             self.storage.mark_offer_notified(offer.offer_id)
 
-            await asyncio.sleep(3)
+            logging.info("Оффер отправлен. Ожидаю действий пользователя...")
+            return
 
     async def generate_reply_for_offer(self, offer_id: str) -> MatchedOffer | None:
         matched_offer = self.storage.get_match(offer_id)
