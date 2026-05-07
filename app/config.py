@@ -11,6 +11,7 @@ class Settings:
     telegram_bot_token: str
     telegram_chat_id: int
     telegram_proxy: str
+    port: int
     kwork_projects_url: str
     kwork_storage_state_path: str
     kwork_storage_state_json: str
@@ -39,6 +40,7 @@ def load_settings() -> Settings:
         telegram_bot_token=_get_required("TELEGRAM_BOT_TOKEN"),
         telegram_chat_id=int(_get_required("TELEGRAM_CHAT_ID")),
         telegram_proxy=os.getenv("TELEGRAM_PROXY", ""),
+        port=int(os.getenv("PORT", "10000")),
         kwork_projects_url=os.getenv("KWORK_PROJECTS_URL", "https://kwork.ru/projects"),
         kwork_storage_state_path=os.getenv("KWORK_STORAGE_STATE_PATH", "./data/kwork-storage.json"),
         kwork_storage_state_json=os.getenv("KWORK_STORAGE_STATE_JSON", ""),

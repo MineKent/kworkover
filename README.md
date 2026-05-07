@@ -62,10 +62,14 @@ python scripts/save_kwork_session.py
 
 ## Deploy на Render
 
-Проще всего деплоить как `Background Worker` через Docker.
+Для бесплатного плана Render проект лучше поднимать как `Web Service` через Docker. Внутри сервиса запущены:
+
+- HTTP health endpoint для Render
+- Telegram-бот
+- фоновый мониторинг Kwork
 
 1. Залейте проект в GitHub.
-2. В Render создайте `New +` -> `Background Worker`.
+2. В Render создайте `New +` -> `Web Service`.
 3. Выберите репозиторий; Render увидит `render.yaml` и `Dockerfile`.
 4. В `Environment` добавьте переменные из `.env`.
 5. Для авторизации Kwork локально получите файл сессии:
@@ -79,9 +83,10 @@ python scripts/save_kwork_session.py
 
 Замечания по Render:
 
-- На free плане worker может останавливаться при ограничениях платформы, поэтому это подходит больше для теста.
+- На free плане Render может усыплять сервис при простое, поэтому это подходит больше для теста, чем для 24/7 мониторинга.
 - Без `KWORK_STORAGE_STATE_JSON` сервис сможет искать заявки, но не сможет отправлять отклики от вашего аккаунта.
 - Если у вас не открывается `api.telegram.org`, задайте `TELEGRAM_PROXY` в Render.
+- Render будет проверять HTTP endpoint на порту `PORT`; для этого в проект добавлен healthcheck на `/health`.
 
 ## Замечания
 

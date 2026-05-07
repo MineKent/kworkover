@@ -11,6 +11,7 @@ from app.service import OfferMonitorService
 from app.skill_matcher import SkillMatcher
 from app.storage import StateStorage
 from app.telegram_bot import TelegramNotifier
+from app.web import run_healthcheck_server
 
 
 async def main() -> None:
@@ -32,7 +33,7 @@ async def main() -> None:
     notifier = TelegramNotifier(settings.telegram_bot_token, settings.telegram_chat_id, settings.telegram_proxy)
     service = OfferMonitorService(settings, storage, matcher, kwork_client, reply_generator, notifier)
 
-    await service.run()
+    await asyncio.gather(service.run(), run_healthcheck_server(settings.port))
 
 
 if __name__ == "__main__":
