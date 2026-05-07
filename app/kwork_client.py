@@ -24,6 +24,12 @@ class KworkClient:
             logging.info(f"Открываю страницу {self.settings.kwork_projects_url}...")
             await page.goto(self.settings.kwork_projects_url, wait_until="domcontentloaded")
             await page.wait_for_timeout(5000)
+            
+            html = await page.content()
+            Path("data").mkdir(exist_ok=True)
+            Path("data/kwork_page.html").write_text(html, encoding="utf-8")
+            logging.info("Страница сохранена в data/kwork_page.html")
+            
             logging.info("Страница загружена, извлекаю офферы...")
             offers = await self._extract_offers(page)
             logging.info(f"Извлечено {len(offers)} офферов")
@@ -49,8 +55,13 @@ class KworkClient:
             await browser.close()
 
     async def _extract_offers(self, page: Page) -> list[Offer]:
-        cards = page.locator(self.settings.offer_card_selector)
+        card_selector = self.settings.offer_card_selector
+        logging.info(f"Ищу карточки по селектору: {card_selector}")
+        
+        cards = page.locator(card_selector)
         count = await cards.count()
+        logging.info(f"Найдено карточек: {count}")
+        
         offers: list[Offer] = []
 
         for index in range(count):
